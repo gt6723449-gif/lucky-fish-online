@@ -1,4 +1,5 @@
-﻿import React from 'react';
+import React from 'react';
+import { TARGET_SCORE } from '../config.js';
 
 export function StartPage({ t, lang, onStart }) {
   function handleStartGame(event) {
@@ -21,7 +22,7 @@ export function StartPage({ t, lang, onStart }) {
             <div className="setup-choice-grid lucky-setup-grid">
               <div className="setup-choice-card selected-setup-choice">
                 <strong>{t.target}</strong>
-                <span>100</span>
+                <span>{TARGET_SCORE}</span>
               </div>
               <div className="setup-choice-card selected-setup-choice">
                 <strong>{t.score}</strong>
