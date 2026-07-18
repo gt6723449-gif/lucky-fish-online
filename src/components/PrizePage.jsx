@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { CONTACT_URL, DEFAULT_PRIZE_AMOUNT } from '../config.js';
 import { COUNTRIES } from '../data/countries.js';
 
@@ -88,18 +88,11 @@ export function PrizePage({ t, lang, score, onPlayAgain }) {
     };
 
     const data = {
-      claim,
-      name: claim.fullName,
+      date: new Date().toISOString(),
       fullName: claim.fullName,
       country: claim.country,
-      countryCode: selectedCountry.iso,
       phone: claim.phone,
-      whatsapp: claim.phone,
-      amount: claim.amount,
-      score,
-      language: lang,
-      submittedAt: new Date().toISOString(),
-      sheetRow: [claim.fullName, claim.country, claim.phone, claim.amount, score, lang]
+      amount: claim.amount
     };
 
     const body = new URLSearchParams({
