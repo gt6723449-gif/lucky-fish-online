@@ -31,6 +31,8 @@ export function GamePage({
   const callbacksRef = useRef({ onScore, onGameOver });
   const pauseRef = useRef(onPause);
   const [coinEffects, setCoinEffects] = useState([]);
+  const [isPortraitPhone, setIsPortraitPhone] = useState(false);
+  const portraitPhoneRef = useRef(false);
   useEffect(() => {
     callbacksRef.current = { onScore, onGameOver };
     pauseRef.current = onPause;
@@ -43,7 +45,7 @@ export function GamePage({
 
   const jump = useCallback(() => {
     const state = stateRef.current;
-    if (!state || phase !== 'playing') return;
+    if (!state || phase !== 'playing' || portraitPhoneRef.current) return;
     state.velocity = -state.jumpPower;
   }, [phase]);
 
@@ -138,13 +140,21 @@ export function GamePage({
       const rect = canvas.getBoundingClientRect();
       const ratio = window.devicePixelRatio || 1;
       state.width = Math.max(300, Math.floor(rect.width));
-      state.height = Math.max(240, Math.floor(rect.height));      canvas.width = Math.floor(state.width * ratio);
+      state.height = Math.max(240, Math.floor(rect.height));
+      const portraitLocked = window.innerWidth <= 820 && window.innerHeight > window.innerWidth;
+      const justEnteredPortrait = portraitLocked && !portraitPhoneRef.current;
+      portraitPhoneRef.current = portraitLocked;
+      setIsPortraitPhone(portraitLocked);
+      if (justEnteredPortrait && phaseRef.current === 'playing') {
+        pauseRef.current();
+      }
+      canvas.width = Math.floor(state.width * ratio);
       canvas.height = Math.floor(state.height * ratio);
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
       state.fishX = Math.max(76, state.width * 0.22);
       state.fishY = state.fishY || state.height * 0.45;
       const phoneSized = Math.min(window.innerWidth, window.innerHeight) <= 520;
-      state.fishRadius = phoneSized ? clamp(Math.min(state.width, state.height) * 0.05, 16, 21) : clamp(state.width * 0.028, 14, 23);
+      state.fishRadius = phoneSized ? clamp(Math.min(state.width, state.height) * 0.04, 13, 18) : clamp(state.width * 0.028, 14, 23);
       state.gravity = clamp(state.height * 0.00072, 0.34, 0.58);
       state.jumpPower = clamp(state.height * 0.014, 6.4, 9);
       state.speed = clamp(state.width * 0.0065, 3.2, 7.2);
@@ -160,7 +170,7 @@ export function GamePage({
       const secondObstacle = createObstacle(firstObstacle.x + getObstacleSpacing(), state);
       state.obstacles = [firstObstacle, secondObstacle];
       state.coins = state.obstacles.flatMap((obstacle) =>
-        createCoinSequence(obstacle.x + obstacle.width / 2, state, obstacle)
+        createCoinSequence(obstacle.x + obstacle.width + state.width * 0.055, state, obstacle)
       );
     };
 
@@ -186,7 +196,7 @@ export function GamePage({
     };
 
     const tick = () => {
-      if (phaseRef.current === 'playing' && !state.ended) {
+      if (phaseRef.current === 'playing' && !state.ended && !portraitPhoneRef.current) {
         state.frame += 1;
         state.backgroundOffset += state.speed * 0.5;
         state.velocity += state.gravity;
@@ -215,7 +225,7 @@ export function GamePage({
           const nextObstacle = createObstacle(nextX, state);
           state.obstacles.push(nextObstacle);
           state.coins.push(
-            ...createCoinSequence(nextObstacle.x + nextObstacle.width / 2, state, nextObstacle)
+            ...createCoinSequence(nextObstacle.x + nextObstacle.width + state.width * 0.055, state, nextObstacle)
           );
         }
 
@@ -270,6 +280,13 @@ export function GamePage({
             +1
           </span>
         ))}
+        {isPortraitPhone && (
+          <div className="rotate-device-overlay" role="alert">
+            <strong>{t.rotateDeviceTitle}</strong>
+            <span>{t.rotateDeviceText}</span>
+          </div>
+        )}
+
         <canvas
           ref={canvasRef}
           className="game-canvas"

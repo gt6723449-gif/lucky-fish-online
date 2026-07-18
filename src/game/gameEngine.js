@@ -15,21 +15,15 @@ export function createBubbles(state) {
 }
 
 export function createCoinSequence(x, state, obstacle) {
-  const count = Math.floor(randomBetween(3, 6));
-  const spacing = clamp(state.width * 0.045, 26, 46);
-  const coinSize = clamp(state.width * 0.038, 20, 34);
-  const gapTop = obstacle ? obstacle.gapTop : coinSize * 1.8;
-  const gapBottom = obstacle ? obstacle.gapBottom : state.height - coinSize * 2.2;
-  const safeTop = gapTop + coinSize * 0.75;
-  const safeBottom = gapBottom - coinSize * 1.75;
-  const gapCenter = (safeTop + safeBottom) / 2;
-  const sequenceWidth = (count - 1) * spacing;
-  const startX = x - sequenceWidth / 2;
-  const wave = Math.min((safeBottom - safeTop) * 0.22, 18);
+  const count = Math.floor(randomBetween(4, 7));
+  const spacing = clamp(state.width * 0.068, 36, 62);
+  const coinSize = clamp(state.width * 0.043, 24, 38);
+  const gapCenter = obstacle ? (obstacle.gapTop + obstacle.gapBottom) / 2 : state.height * randomBetween(0.34, 0.64);
+  const wave = randomBetween(-12, 12);
 
   return Array.from({ length: count }, (_, index) => ({
-    x: startX + index * spacing,
-    y: clamp(gapCenter + Math.sin(index * 0.9) * wave - coinSize / 2, safeTop, safeBottom),
+    x: x + index * spacing,
+    y: clamp(gapCenter + Math.sin(index * 0.75) * wave - coinSize / 2, obstacle ? obstacle.gapTop + coinSize * 0.45 : coinSize * 1.8, obstacle ? obstacle.gapBottom - coinSize * 1.45 : state.height - coinSize * 2.2),
     size: coinSize,
     collected: false
   }));
