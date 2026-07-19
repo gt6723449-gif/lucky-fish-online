@@ -83,9 +83,12 @@ export function GamePage({
       backgroundOffset: 0,
       coinImage: null,
       fishImage: null,
+      eatingFishImage: null,
+      eatingUntilFrame: 0,
       collectedEffects: [],
       score: 0,
-      frame: 0,      ended: false
+      frame: 0,
+      ended: false
     };
     stateRef.current = state;
 
@@ -109,7 +112,8 @@ export function GamePage({
     backgroundImage.onload = () => {
       state.backgroundImage = backgroundImage;
     };
-    backgroundImage.src = '/background-game.png';
+    backgroundImage.src = '/background-game-4.png';
+
 
     const coinImage = new Image();
     coinImage.onload = () => {
@@ -121,7 +125,13 @@ export function GamePage({
     fishImage.onload = () => {
       state.fishImage = fishImage;
     };
-    fishImage.src = '/fish-game.png';
+    fishImage.src = '/golden-fish-game.png';
+
+    const eatingFishImage = new Image();
+    eatingFishImage.onload = () => {
+      state.eatingFishImage = eatingFishImage;
+    };
+    eatingFishImage.src = '/golden-fish-eating.png';
 
     const obstacleTopImage = new Image();
     obstacleTopImage.onload = () => {
@@ -212,6 +222,7 @@ export function GamePage({
         updateCoins(state);
         const collectedCoins = collectCoins(state);
         if (collectedCoins > 0) {
+          state.eatingUntilFrame = state.frame + 22;
           addCoinEffects();
           state.score += collectedCoins;
           callbacksRef.current.onScore(state.score);
@@ -277,7 +288,7 @@ export function GamePage({
             key={effect.id}
             style={{ '--from-x': effect.fromX, '--from-y': effect.fromY }}
           >
-            +1
+            +1$
           </span>
         ))}
         {isPortraitPhone && (
@@ -293,22 +304,11 @@ export function GamePage({
           aria-label={t.startTitle}
           onPointerDown={jump}
         />
-        <div className="game-controls">
-          {!isGameOver && (
-            <button className="secondary-button" type="button" onClick={isPaused ? onResume : onPause}>
-              {isPaused ? t.resume : t.pause}
-            </button>
-          )}
-          {isGameOver && (
-            <button className="primary-button" type="button" onClick={onRestart}>
-              {t.playAgain}
-            </button>
-          )}
-          <button className="ghost-button on-dark" type="button" onClick={onRestart}>
-            {t.restart}
+        {isGameOver && (
+          <button className="primary-button game-over-action" type="button" onClick={onRestart}>
+            {t.playAgain}
           </button>
-        </div>
-        <p className="jump-hint">{t.jumpHint}</p>
+        )}
       </div>
     </section>
   );

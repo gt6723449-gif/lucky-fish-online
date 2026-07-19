@@ -87,7 +87,9 @@ export function drawScene(context, state, lang) {
   }
 
   drawCoins(context, state);
-  drawFish(context, state, lang);
+  if (!state.ended) {
+    drawFish(context, state, lang);
+  }
 }
 
 function drawBackground(context, state) {
@@ -101,14 +103,13 @@ function drawBackground(context, state) {
   if (!state.backgroundImage) return;
 
   const image = state.backgroundImage;
-  const sourceY = image.height * 0.14;
-  const sourceHeight = image.height * 0.74;
-  const scale = state.height / sourceHeight;
+  const scale = state.height / image.height;
   const drawWidth = image.width * scale;
+  const drawHeight = state.height;
   const offset = state.backgroundOffset % drawWidth;
 
   for (let x = -offset; x < state.width + drawWidth; x += drawWidth) {
-    context.drawImage(image, 0, sourceY, image.width, sourceHeight, x, 0, drawWidth, state.height);
+    context.drawImage(image, x, 0, drawWidth, drawHeight);
   }
 }
 function updateAndDrawBubbles(context, state) {
@@ -270,9 +271,10 @@ function drawStackCoin(context, x, y, width, height) {
 }
 
 function drawFish(context, state, lang) {
-  const { fishImage, fishRadius: radius, fishX: x, fishY: y, velocity } = state;
+  const { eatingFishImage, fishImage, fishRadius: radius, fishX: x, fishY: y, velocity } = state;
+  const activeFishImage = eatingFishImage && state.frame < state.eatingUntilFrame ? eatingFishImage : fishImage;
 
-  if (!fishImage) return;
+  if (!activeFishImage) return;
 
   context.save();
   context.translate(x, y);
@@ -280,7 +282,7 @@ function drawFish(context, state, lang) {
   context.scale(1, 1);
   const width = radius * 4.25;
   const height = radius * 2.4;
-  context.drawImage(fishImage, -width * 0.48, -height * 0.5, width, height);
+  context.drawImage(activeFishImage, -width * 0.48, -height * 0.5, width, height);
   context.restore();
 }
 

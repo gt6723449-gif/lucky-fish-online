@@ -1157,3 +1157,13 @@ h2 {
     visibility: hidden;
   }
 }
+.game-over-action {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(22px, 8vh, 72px);
+  z-index: 5;
+  transform: translateX(-50%);
+}
+.game-over-action:hover {
+  transform: translateX(-50%);
+}
