@@ -9,11 +9,6 @@ export function createObstacle(x, state) {
   return { x, width, gapTop: center - obstacleGap / 2, gapBottom: center + obstacleGap / 2, scored: false };
 }
 
-export function createBubbles(state) {
-  const bubbleCount = Math.floor(randomBetween(7, 13));
-  return Array.from({ length: bubbleCount }, () => createBubble(state, true));
-}
-
 export function createCoinSequence(x, state, obstacle) {
   const count = Math.floor(randomBetween(4, 7));
   const spacing = clamp(state.width * 0.068, 36, 62);
@@ -80,7 +75,6 @@ export function drawScene(context, state, lang) {
   context.clearRect(0, 0, state.width, state.height);
   drawBackground(context, state);
 
-  updateAndDrawBubbles(context, state);
 
   for (const obstacle of state.obstacles) {
     drawObstacle(context, obstacle, state);
@@ -112,36 +106,6 @@ function drawBackground(context, state) {
     context.drawImage(image, x, 0, drawWidth, drawHeight);
   }
 }
-function updateAndDrawBubbles(context, state) {
-  if (!state.bubbleImage || !state.bubbles?.length) return;
-
-  for (let index = 0; index < state.bubbles.length; index += 1) {
-    const bubble = state.bubbles[index];
-    bubble.y -= bubble.speed;
-
-    if (bubble.y + bubble.size < -20) {
-      state.bubbles[index] = createBubble(state, false);
-      continue;
-    }
-
-    context.save();
-    context.globalAlpha = bubble.opacity;
-    context.drawImage(state.bubbleImage, bubble.x, bubble.y, bubble.size, bubble.size);
-    context.restore();
-  }
-}
-
-function createBubble(state, anywhere) {
-  const size = randomBetween(clamp(state.width * 0.022, 12, 28), clamp(state.width * 0.052, 24, 46));
-  return {
-    x: randomBetween(-size * 0.2, state.width - size * 0.8),
-    y: anywhere ? randomBetween(0, state.height + size) : randomBetween(state.height + size * 0.4, state.height + size * 2.4),
-    size,
-    speed: randomBetween(0.35, 0.85),
-    opacity: randomBetween(0.24, 0.5)
-  };
-}
-
 function drawCoins(context, state) {
   if (!state.coinImage) return;
 
@@ -271,10 +235,9 @@ function drawStackCoin(context, x, y, width, height) {
 }
 
 function drawFish(context, state, lang) {
-  const { eatingFishImage, fishImage, fishRadius: radius, fishX: x, fishY: y, velocity } = state;
-  const activeFishImage = eatingFishImage && state.frame < state.eatingUntilFrame ? eatingFishImage : fishImage;
+  const { fishImage, fishRadius: radius, fishX: x, fishY: y, velocity } = state;
 
-  if (!activeFishImage) return;
+  if (!fishImage) return;
 
   context.save();
   context.translate(x, y);
@@ -282,7 +245,7 @@ function drawFish(context, state, lang) {
   context.scale(1, 1);
   const width = radius * 4.25;
   const height = radius * 2.4;
-  context.drawImage(activeFishImage, -width * 0.48, -height * 0.5, width, height);
+  context.drawImage(fishImage, -width * 0.48, -height * 0.5, width, height);
   context.restore();
 }
 

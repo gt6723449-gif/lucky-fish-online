@@ -49,9 +49,8 @@ export const COPY = {
     contactUsThroughWebsite: 'Contact us through the website',
     close: 'Close',
     changeLanguage: 'Language',
-    jumpHint: 'Tap anywhere in the game area to jump',
-    rotateDeviceTitle: 'Rotate your phone',
-    rotateDeviceText: 'Lucky Fish works on phones in landscape mode only.',  },
+    jumpHint: 'Tap anywhere in the game area to jump'
+  },
   ar: {
     languageTitle: 'اختر اللغة',
     languageTitleArabic: 'اختر لغتك',
@@ -102,7 +101,6 @@ export const COPY = {
     contactUsThroughWebsite: 'للتواصل معنا عبر الموقع',
     close: 'إغلاق',
     changeLanguage: 'اللغة',
-    jumpHint: 'اضغط داخل مساحة اللعب للقفز',
-    rotateDeviceTitle: 'قم بتدوير الهاتف',
-    rotateDeviceText: 'لعبة السمكة المحظوظة تعمل على الهاتف بالوضع الأفقي فقط.',  }
+    jumpHint: 'اضغط داخل مساحة اللعب للقفز'
+  }
 };

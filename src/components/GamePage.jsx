@@ -4,7 +4,6 @@ import { TARGET_SCORE } from '../config.js';
 import {
   clamp,
   collectCoins,
-  createBubbles,
   createCoinSequence,
   createObstacle,
   drawOverlay,
@@ -20,8 +19,6 @@ export function GamePage({
   lang,
   onScore,
   onGameOver,
-  onPause,
-  onResume,
   onRestart
 }) {
   const canvasRef = useRef(null);
@@ -29,14 +26,11 @@ export function GamePage({
   const phaseRef = useRef(phase);
   const overlayTextRef = useRef({ paused: t.paused, gameOver: t.gameOver });
   const callbacksRef = useRef({ onScore, onGameOver });
-  const pauseRef = useRef(onPause);
   const [coinEffects, setCoinEffects] = useState([]);
-  const [isPortraitPhone, setIsPortraitPhone] = useState(false);
-  const portraitPhoneRef = useRef(false);
+
   useEffect(() => {
     callbacksRef.current = { onScore, onGameOver };
-    pauseRef.current = onPause;
-  }, [onGameOver, onPause, onScore]);
+  }, [onGameOver, onScore]);
 
   useEffect(() => {
     phaseRef.current = phase;
@@ -45,7 +39,7 @@ export function GamePage({
 
   const jump = useCallback(() => {
     const state = stateRef.current;
-    if (!state || phase !== 'playing' || portraitPhoneRef.current) return;
+    if (!state || phase !== 'playing') return;
     state.velocity = -state.jumpPower;
   }, [phase]);
 
@@ -77,14 +71,10 @@ export function GamePage({
       obstacleWidth: 70,
       obstacles: [],
       coins: [],
-      bubbles: [],
-      bubbleImage: null,
       backgroundImage: null,
       backgroundOffset: 0,
       coinImage: null,
       fishImage: null,
-      eatingFishImage: null,
-      eatingUntilFrame: 0,
       collectedEffects: [],
       score: 0,
       frame: 0,
@@ -102,11 +92,6 @@ export function GamePage({
       image.onerror = () => resolve();
       image.src = src;
     });
-    const bubbleImage = new Image();
-    bubbleImage.onload = () => {
-      state.bubbleImage = bubbleImage;
-    };
-    bubbleImage.src = '/bubble-small.png';
 
     const backgroundImage = new Image();
     backgroundImage.onload = () => {
@@ -125,13 +110,7 @@ export function GamePage({
     fishImage.onload = () => {
       state.fishImage = fishImage;
     };
-    fishImage.src = '/golden-fish-game.png';
-
-    const eatingFishImage = new Image();
-    eatingFishImage.onload = () => {
-      state.eatingFishImage = eatingFishImage;
-    };
-    eatingFishImage.src = '/golden-fish-eating.png';
+    fishImage.src = '/fish-game.png';
 
     const obstacleTopImage = new Image();
     obstacleTopImage.onload = () => {
@@ -151,13 +130,6 @@ export function GamePage({
       const ratio = window.devicePixelRatio || 1;
       state.width = Math.max(300, Math.floor(rect.width));
       state.height = Math.max(240, Math.floor(rect.height));
-      const portraitLocked = window.innerWidth <= 820 && window.innerHeight > window.innerWidth;
-      const justEnteredPortrait = portraitLocked && !portraitPhoneRef.current;
-      portraitPhoneRef.current = portraitLocked;
-      setIsPortraitPhone(portraitLocked);
-      if (justEnteredPortrait && phaseRef.current === 'playing') {
-        pauseRef.current();
-      }
       canvas.width = Math.floor(state.width * ratio);
       canvas.height = Math.floor(state.height * ratio);
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
@@ -170,7 +142,6 @@ export function GamePage({
       state.speed = clamp(state.width * 0.0065, 3.2, 7.2);
       state.gap = clamp(state.height * 0.3, 108, 174);
       state.obstacleWidth = clamp(state.width * 0.048, 34, 46);
-      state.bubbles = createBubbles(state);
     };
 
     const getObstacleSpacing = () => clamp(state.width * (0.26 + Math.random() * 0.34), 150, 430);
@@ -206,7 +177,7 @@ export function GamePage({
     };
 
     const tick = () => {
-      if (phaseRef.current === 'playing' && !state.ended && !portraitPhoneRef.current) {
+      if (phaseRef.current === 'playing' && !state.ended) {
         state.frame += 1;
         state.backgroundOffset += state.speed * 0.5;
         state.velocity += state.gravity;
@@ -222,7 +193,6 @@ export function GamePage({
         updateCoins(state);
         const collectedCoins = collectCoins(state);
         if (collectedCoins > 0) {
-          state.eatingUntilFrame = state.frame + 22;
           addCoinEffects();
           state.score += collectedCoins;
           callbacksRef.current.onScore(state.score);
@@ -265,7 +235,6 @@ export function GamePage({
     };
   }, [lang]);
 
-  const isPaused = phase === 'paused';
   const isGameOver = phase === 'gameOver';
   const progress = Math.min(100, Math.max(0, (score / TARGET_SCORE) * 100));
 
@@ -291,12 +260,6 @@ export function GamePage({
             +1$
           </span>
         ))}
-        {isPortraitPhone && (
-          <div className="rotate-device-overlay" role="alert">
-            <strong>{t.rotateDeviceTitle}</strong>
-            <span>{t.rotateDeviceText}</span>
-          </div>
-        )}
 
         <canvas
           ref={canvasRef}

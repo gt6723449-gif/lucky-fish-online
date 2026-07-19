@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { useEffect, useState } from 'react';
 import { TARGET_SCORE } from './config.js';
 import { GamePage } from './components/GamePage.jsx';
@@ -70,8 +70,6 @@ export default function App() {
           lang={lang}
           onScore={handleScore}
           onGameOver={handleGameOver}
-          onPause={() => setPhase('paused')}
-          onResume={() => setPhase('playing')}
           onRestart={startGame}
           onLanguage={() => setPhase('language')}
         />
