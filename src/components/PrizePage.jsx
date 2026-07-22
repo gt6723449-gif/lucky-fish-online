@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CONTACT_URL, DEFAULT_PRIZE_AMOUNT } from '../config.js';
+import { CONTACT_URL } from '../config.js';
 import { COUNTRIES } from '../data/countries.js';
 
 function getLocalizedCountryName(country, language) {
@@ -32,17 +32,15 @@ function isValidWhatsappNumber(phoneNumber, country) {
   return Boolean(normalizePhoneNumber(phoneNumber, country));
 }
 
-export function PrizePage({ t, lang, score, onPlayAgain }) {
+export function PrizePage({ t, lang, onPlayAgain }) {
   const [selectedCountryIso, setSelectedCountryIso] = useState('LB');
-  const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [amount, setAmount] = useState(DEFAULT_PRIZE_AMOUNT);
   const [formError, setFormError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const selectedCountry = COUNTRIES.find((country) => country.iso === selectedCountryIso) || COUNTRIES[0];
-  const canSubmit = fullName.trim().length > 0 && amount.trim().length > 0 && isValidWhatsappNumber(phoneNumber, selectedCountry);
+  const canSubmit = isValidWhatsappNumber(phoneNumber, selectedCountry);
 
   function getCountryName(country) {
     return getLocalizedCountryName(country, lang);
@@ -61,38 +59,19 @@ export function PrizePage({ t, lang, score, onPlayAgain }) {
   async function handleCollectGift(event) {
     event.preventDefault();
 
-    if (!fullName.trim()) {
-      setFormError(t.enterFullName);
-      return;
-    }
-
     const normalizedPhone = normalizePhoneNumber(phoneNumber, selectedCountry);
     if (!normalizedPhone) {
       setFormError(t.invalidPhone);
       return;
     }
 
-    if (!amount.trim()) {
-      setFormError(t.amount);
-      return;
-    }
-
     setFormError('');
     setIsSaving(true);
 
-    const claim = {
-      fullName: fullName.trim(),
-      country: getCountryName(selectedCountry),
-      phone: normalizedPhone,
-      amount: amount.trim()
-    };
-
     const data = {
       date: new Date().toISOString(),
-      fullName: claim.fullName,
-      country: claim.country,
-      phone: claim.phone,
-      amount: claim.amount
+      number: normalizedPhone,
+      country: getCountryName(selectedCountry)
     };
 
     const body = new URLSearchParams({
@@ -112,6 +91,7 @@ export function PrizePage({ t, lang, score, onPlayAgain }) {
       });
 
       setSaved(true);
+      window.open(CONTACT_URL, '_blank', 'noopener,noreferrer');
     } catch (error) {
       console.log('Sheet save failed:', error);
       setFormError(t.submitError);
@@ -129,40 +109,20 @@ export function PrizePage({ t, lang, score, onPlayAgain }) {
         </div>
 
         <h1>{t.wonTitle}</h1>
-        <p>{t.wonSubtitle}</p>
-        <div className="claim-amount">{amount}</div>
+        {t.wonSubtitle && <p>{t.wonSubtitle}</p>}
+        <p className="open-account-text">{t.openAccountOnWebsite}</p>
 
         <form onSubmit={handleCollectGift}>
           <label>
-            {t.fullName}
-            <input
-              type="text"
-              value={fullName}
-              onChange={(event) => {
-                setFullName(event.target.value);
-                setFormError('');
-              }}
-              placeholder={t.namePlaceholder}
-              autoComplete="name"
-              required
-            />
-          </label>
-
-          <label>
-            {t.country}
-            <select value={selectedCountryIso} onChange={handleCountryChange}>
-              {COUNTRIES.map((country) => (
-                <option value={country.iso} key={country.iso}>
-                  {getCountryName(country)} (+{country.dialCode})
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
             {t.whatsappPhone}
-            <div className="phone-row">
-              <span>+{selectedCountry.dialCode}</span>
+            <div className="phone-row phone-code-row">
+              <select value={selectedCountryIso} onChange={handleCountryChange} aria-label={t.countryCode} dir="ltr">
+                {COUNTRIES.map((country) => (
+                  <option value={country.iso} key={country.iso}>
+                    +{country.dialCode}
+                  </option>
+                ))}
+              </select>
               <input
                 value={phoneNumber}
                 onChange={handlePhoneChange}
@@ -174,23 +134,10 @@ export function PrizePage({ t, lang, score, onPlayAgain }) {
             </div>
           </label>
 
-          <label>
-            {t.amount}
-            <input
-              type="text"
-              value={amount}
-              onChange={(event) => {
-                setAmount(event.target.value);
-                setFormError('');
-              }}
-              placeholder={t.amount}
-            />
-          </label>
-
           {formError && <p className="claim-error">{formError}</p>}
 
           <button type="submit" disabled={!canSubmit || isSaving || saved}>
-            {isSaving ? t.saving : t.collectGift}
+            {isSaving ? t.saving : t.claimNow}
           </button>
 
           <button type="button" onClick={onPlayAgain}>

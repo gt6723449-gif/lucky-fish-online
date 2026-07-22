@@ -575,7 +575,7 @@ h2 {
   gap: 8px;
   margin: 0;
   color: #052f43;
-  font-size: clamp(2rem, 7vw, 3.7rem);
+  font-size: clamp(1.45rem, 4.2vw, 2.55rem);
   line-height: 1;
 }
 
@@ -729,6 +729,23 @@ h2 {
 .phone-row input {
   border: 0;
   border-radius: 0;
+}
+.phone-code-row {
+  grid-template-columns: minmax(78px, 0.22fr) minmax(0, 1fr);
+}
+
+.phone-code-row select {
+  min-width: 0;
+  border: 0;
+  border-radius: 0;
+  border-inline-end: 1px solid rgba(7, 59, 76, 0.16);
+  background: rgba(255, 255, 255, 0.72);
+  font-weight: 850;
+  text-align: center;
+}
+
+.open-account-text {
+  font-weight: 850;
 }
 
 .claim-amount {
@@ -975,7 +992,7 @@ h2 {
   .start-card h1,
   .winner-claim-card h1 {
     gap: 3px;
-    font-size: clamp(1.35rem, 7vw, 2.05rem);
+    font-size: clamp(1.05rem, 5vw, 1.65rem);
     line-height: 0.98;
   }
 
@@ -1072,7 +1089,7 @@ h2 {
   .language-card h1,
   .start-card h1,
   .winner-claim-card h1 {
-    font-size: clamp(1.05rem, 5dvh, 1.35rem);
+    font-size: clamp(0.95rem, 4dvh, 1.18rem);
   }
 
   .language-card p,

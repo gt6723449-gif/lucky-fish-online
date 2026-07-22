@@ -1,16 +1,14 @@
-const SHEET_NAME = 'Prize Requests';
-
 function doPost(e) {
   const sheet = getSheet();
   const params = e.parameter || {};
   const data = params.data ? JSON.parse(params.data) : params;
 
+  ensureHeaders(sheet);
+
   sheet.appendRow([
     data.date ? new Date(data.date) : new Date(),
-    data.fullName || '',
-    data.country || '',
-    data.phone || '',
-    data.amount || ''
+    data.number || data.phone || '',
+    data.country || ''
   ]);
 
   return ContentService
@@ -26,22 +24,23 @@ function doGet() {
 
 function getSheet() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  const headers = ['Date', 'Number', 'Country'];
+  const sheets = spreadsheet.getSheets();
 
-  if (!sheet) {
-    sheet = spreadsheet.insertSheet(SHEET_NAME);
-  }
+  const matchingSheet = sheets.find((sheet) => {
+    const values = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+    return headers.every((header, index) => values[index] === header);
+  });
 
-  ensureHeaders(sheet);
-  return sheet;
+  return matchingSheet || spreadsheet.getActiveSheet() || sheets[0];
 }
 
 function ensureHeaders(sheet) {
-  const headers = ['Date', 'Full Name', 'Country', 'Phone', 'Amount'];
+  const headers = ['Date', 'Number', 'Country'];
   const currentHeaders = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
-  const hasHeaders = currentHeaders.some((value) => value);
+  const headersMatch = headers.every((header, index) => currentHeaders[index] === header);
 
-  if (!hasHeaders) {
+  if (!headersMatch) {
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
 }
