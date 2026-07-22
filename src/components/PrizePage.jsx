@@ -119,8 +119,7 @@ export function PrizePage({ t, lang, onPlayAgain }) {
               <select value={selectedCountryIso} onChange={handleCountryChange} aria-label={t.countryCode} dir="ltr">
                 {COUNTRIES.map((country) => (
                   <option value={country.iso} key={country.iso}>
-                    +{country.dialCode}
-                  </option>
+                    +{country.dialCode} {getCountryName(country)}`r`n                  </option>
                 ))}
               </select>
               <input
