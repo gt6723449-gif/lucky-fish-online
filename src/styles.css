@@ -860,12 +860,6 @@ h2 {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.75);
 }
 
-[dir='rtl'] .game-hud,
-.game-hud[dir='rtl'] {
-  right: auto;
-  left: 14px;
-}
-
 .amount-readout {
   display: flex;
   align-items: center;
@@ -932,12 +926,6 @@ h2 {
     top: 10px;
     right: 10px;
     width: min(190px, calc(100vw - 20px));
-  }
-
-  [dir='rtl'] .game-hud,
-  .game-hud[dir='rtl'] {
-    right: auto;
-    left: 10px;
   }
 
   .amount-progress {
@@ -1161,12 +1149,6 @@ h2 {
     top: 8px;
     right: 8px;
     width: min(190px, calc(100vw - 16px));
-  }
-
-  [dir='rtl'] .game-hud,
-  .game-hud[dir='rtl'] {
-    right: auto;
-    left: 8px;
   }
 
   .amount-readout {

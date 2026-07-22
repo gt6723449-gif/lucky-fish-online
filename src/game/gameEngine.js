@@ -59,14 +59,21 @@ export function collectCoins(state) {
 }
 
 export function hasCollision(state) {
-  if (state.fishY - state.fishRadius < 0 || state.fishY + state.fishRadius > state.height) return true;
+  const fishWidth = state.fishRadius * 4.25;
+  const fishHeight = state.fishRadius * 2.4;
+  const hitbox = {
+    left: state.fishX - fishWidth * 0.3,
+    right: state.fishX + fishWidth * 0.34,
+    top: state.fishY - fishHeight * 0.34,
+    bottom: state.fishY + fishHeight * 0.34
+  };
+
+  if (hitbox.top < 0 || hitbox.bottom > state.height) return true;
 
   return state.obstacles.some((obstacle) => {
-    const fishRight = state.fishX + state.fishRadius;
-    const fishLeft = state.fishX - state.fishRadius;
     const obstacleRight = obstacle.x + obstacle.width;
-    const overlapsX = fishRight > obstacle.x && fishLeft < obstacleRight;
-    const outsideGap = state.fishY - state.fishRadius < obstacle.gapTop || state.fishY + state.fishRadius > obstacle.gapBottom;
+    const overlapsX = hitbox.right > obstacle.x && hitbox.left < obstacleRight;
+    const outsideGap = hitbox.top < obstacle.gapTop || hitbox.bottom > obstacle.gapBottom;
     return overlapsX && outsideGap;
   });
 }
