@@ -43,7 +43,7 @@ export function PrizePage({ t, lang, score, isCashOut = false, onPlayAgain }) {
   const selectedCountry = COUNTRIES.find((country) => country.iso === selectedCountryIso) || COUNTRIES[0];
   const canSubmit = isValidWhatsappNumber(phoneNumber, selectedCountry) && age.length > 0;
   const amount = isCashOut ? `${score}$` : '100$';
-  const pageTitle = isCashOut ? t.cashOutTitle.replace('{score}', score) : t.wonTitle;
+  const pageTitle = t.claimPageTitle.replace('{amount}', amount);
 
   function getCountryName(country) {
     return getLocalizedCountryName(country, lang);
@@ -124,8 +124,8 @@ export function PrizePage({ t, lang, score, isCashOut = false, onPlayAgain }) {
         </div>
 
         <h1>{pageTitle}</h1>
-        {t.wonSubtitle && <p>{t.wonSubtitle}</p>}
-        <p className="open-account-text">{t.openAccountOnWebsite}</p>
+        <p className="open-account-text">{t.claimPageSubtitle}</p>
+        <p>{t.claimPageInstruction}</p>
 
         <form onSubmit={handleCollectGift}>
           <label>
