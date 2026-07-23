@@ -32,7 +32,7 @@ function isValidWhatsappNumber(phoneNumber, country) {
   return Boolean(normalizePhoneNumber(phoneNumber, country));
 }
 
-export function PrizePage({ t, lang, onPlayAgain }) {
+export function PrizePage({ t, lang, score, isCashOut = false, onPlayAgain }) {
   const [selectedCountryIso, setSelectedCountryIso] = useState('LB');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [formError, setFormError] = useState('');
@@ -41,6 +41,7 @@ export function PrizePage({ t, lang, onPlayAgain }) {
 
   const selectedCountry = COUNTRIES.find((country) => country.iso === selectedCountryIso) || COUNTRIES[0];
   const canSubmit = isValidWhatsappNumber(phoneNumber, selectedCountry);
+  const pageTitle = isCashOut ? t.cashOutTitle.replace('{score}', score) : t.wonTitle;
 
   function getCountryName(country) {
     return getLocalizedCountryName(country, lang);
@@ -71,7 +72,8 @@ export function PrizePage({ t, lang, onPlayAgain }) {
     const data = {
       date: new Date().toISOString(),
       number: normalizedPhone,
-      country: getCountryName(selectedCountry)
+      country: getCountryName(selectedCountry),
+      score
     };
 
     const body = new URLSearchParams({
@@ -108,7 +110,7 @@ export function PrizePage({ t, lang, onPlayAgain }) {
           <strong>FISH</strong>
         </div>
 
-        <h1>{t.wonTitle}</h1>
+        <h1>{pageTitle}</h1>
         {t.wonSubtitle && <p>{t.wonSubtitle}</p>}
         <p className="open-account-text">{t.openAccountOnWebsite}</p>
 
@@ -119,7 +121,8 @@ export function PrizePage({ t, lang, onPlayAgain }) {
               <select value={selectedCountryIso} onChange={handleCountryChange} aria-label={t.countryCode} dir="ltr">
                 {COUNTRIES.map((country) => (
                   <option value={country.iso} key={country.iso}>
-                    +{country.dialCode} {getCountryName(country)}`r`n                  </option>
+                    +{country.dialCode} {getCountryName(country)}
+                  </option>
                 ))}
               </select>
               <input

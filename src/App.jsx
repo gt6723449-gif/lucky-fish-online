@@ -13,6 +13,7 @@ export default function App() {
   const [score, setScore] = useState(0);
   const [best, setBest] = useState(0);
   const [runId, setRunId] = useState(0);
+  const [prizeMode, setPrizeMode] = useState('win');
   const t = COPY[lang || 'en'];
   const direction = lang === 'ar' ? 'rtl' : 'ltr';
 
@@ -27,6 +28,7 @@ export default function App() {
   };
 
   const startGame = () => {
+    setPrizeMode('win');
     setScore(0);
     setPhase('playing');
     setRunId((value) => value + 1);
@@ -36,6 +38,7 @@ export default function App() {
     setScore(nextScore);
     setBest((value) => Math.max(value, nextScore));
     if (nextScore >= TARGET_SCORE) {
+      setPrizeMode('win');
       setPhase('prize');
     }
   };
@@ -44,6 +47,11 @@ export default function App() {
     setScore(finalScore);
     setBest((value) => Math.max(value, finalScore));
     setPhase('gameOver');
+  };
+
+  const handleCashOut = () => {
+    setPrizeMode('cashOut');
+    setPhase('prize');
   };
 
   return (
@@ -70,6 +78,7 @@ export default function App() {
           lang={lang}
           onScore={handleScore}
           onGameOver={handleGameOver}
+          onCashOut={handleCashOut}
           onRestart={startGame}
           onLanguage={() => setPhase('language')}
         />
@@ -81,6 +90,7 @@ export default function App() {
           lang={lang}
           score={score}
           best={best}
+          isCashOut={prizeMode === 'cashOut'}
           onPlayAgain={startGame}
           onLanguage={() => setPhase('language')}
         />

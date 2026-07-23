@@ -19,6 +19,7 @@ export function GamePage({
   lang,
   onScore,
   onGameOver,
+  onCashOut,
   onRestart
 }) {
   const canvasRef = useRef(null);
@@ -260,6 +261,12 @@ export function GamePage({
             +1$
           </span>
         ))}
+
+        {isPlaying && (
+          <button className="secondary-button cash-out-action" type="button" onClick={onCashOut}>
+            {t.cashOut}
+          </button>
+        )}
 
         <canvas
           ref={canvasRef}

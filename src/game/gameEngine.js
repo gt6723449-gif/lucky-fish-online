@@ -1,6 +1,7 @@
 export function createObstacle(x, state) {
   const width = state.obstacleWidth;
-  const obstacleGap = state.gap * randomBetween(0.72, 1.36);
+  const gapRange = state.score <= 30 ? [1.18, 1.6] : [0.72, 1.36];
+  const obstacleGap = state.gap * randomBetween(gapRange[0], gapRange[1]);
   const margin = clamp(state.height * 0.09, 34, 72);
   const minCenter = margin + obstacleGap / 2;
   const maxCenter = state.height - margin - obstacleGap / 2;

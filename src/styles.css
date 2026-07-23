@@ -1110,6 +1110,18 @@ h2 {
   }
 }
 
+.cash-out-action {
+  position: absolute;
+  top: 86px;
+  right: 14px;
+  z-index: 4;
+  min-height: 40px;
+  padding: 0 16px;
+}
+
+.cash-out-action:hover {
+  transform: translateY(-1px);
+}
 .game-over-action {
   position: absolute;
   left: 50%;
@@ -1159,6 +1171,14 @@ h2 {
     height: 14px;
     margin-top: 5px;
     border-width: 2px;
+  }
+
+  .cash-out-action {
+    top: 66px;
+    right: 8px;
+    min-height: 30px;
+    padding: 0 10px;
+    font-size: 0.74rem;
   }
 
   .game-over-action {

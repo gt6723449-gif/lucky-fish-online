@@ -8,7 +8,8 @@ function doPost(e) {
   sheet.appendRow([
     data.date ? new Date(data.date) : new Date(),
     data.number || data.phone || '',
-    data.country || ''
+    data.country || '',
+    data.score || 0
   ]);
 
   return ContentService
@@ -24,7 +25,7 @@ function doGet() {
 
 function getSheet() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  const headers = ['Date', 'Number', 'Country'];
+  const headers = ['Date', 'Number', 'Country', 'Score'];
   const sheets = spreadsheet.getSheets();
 
   const matchingSheet = sheets.find((sheet) => {
@@ -36,7 +37,7 @@ function getSheet() {
 }
 
 function ensureHeaders(sheet) {
-  const headers = ['Date', 'Number', 'Country'];
+  const headers = ['Date', 'Number', 'Country', 'Score'];
   const currentHeaders = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
   const headersMatch = headers.every((header, index) => currentHeaders[index] === header);
 
