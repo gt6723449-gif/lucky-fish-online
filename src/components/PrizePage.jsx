@@ -35,12 +35,13 @@ function isValidWhatsappNumber(phoneNumber, country) {
 export function PrizePage({ t, lang, score, isCashOut = false, onPlayAgain }) {
   const [selectedCountryIso, setSelectedCountryIso] = useState('LB');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [age, setAge] = useState('');
   const [formError, setFormError] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saved, setSaved] = useState(false);
 
   const selectedCountry = COUNTRIES.find((country) => country.iso === selectedCountryIso) || COUNTRIES[0];
-  const canSubmit = isValidWhatsappNumber(phoneNumber, selectedCountry);
+  const canSubmit = isValidWhatsappNumber(phoneNumber, selectedCountry) && age.length > 0;
   const pageTitle = isCashOut ? t.cashOutTitle.replace('{score}', score) : t.wonTitle;
 
   function getCountryName(country) {
@@ -57,12 +58,22 @@ export function PrizePage({ t, lang, score, isCashOut = false, onPlayAgain }) {
     setFormError('');
   }
 
+  function handleAgeChange(event) {
+    setAge(event.target.value.replace(/\D/g, ''));
+    setFormError('');
+  }
+
   async function handleCollectGift(event) {
     event.preventDefault();
 
     const normalizedPhone = normalizePhoneNumber(phoneNumber, selectedCountry);
     if (!normalizedPhone) {
       setFormError(t.invalidPhone);
+      return;
+    }
+
+    if (!age) {
+      setFormError(t.enterAge);
       return;
     }
 
@@ -73,6 +84,7 @@ export function PrizePage({ t, lang, score, isCashOut = false, onPlayAgain }) {
       date: new Date().toISOString(),
       number: normalizedPhone,
       country: getCountryName(selectedCountry),
+      age,
       score
     };
 
@@ -134,6 +146,20 @@ export function PrizePage({ t, lang, score, isCashOut = false, onPlayAgain }) {
                 dir="ltr"
               />
             </div>
+          </label>
+
+          <label>
+            {t.age}
+            <input
+              type="text"
+              value={age}
+              onChange={handleAgeChange}
+              placeholder={t.agePlaceholder}
+              inputMode="numeric"
+              autoComplete="off"
+              dir="ltr"
+              required
+            />
           </label>
 
           {formError && <p className="claim-error">{formError}</p>}
