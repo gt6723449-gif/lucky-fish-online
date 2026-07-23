@@ -586,6 +586,7 @@ h2 {
 
 .language-card p,
 .start-subtitle,
+.start-experience-tip,
 .winner-claim-card p,
 .rules-modal p {
   margin: 0;
@@ -638,6 +639,10 @@ h2 {
 .rules-button {
   justify-self: center;
   padding: 0 22px;
+}
+
+.start-experience-tip {
+  font-weight: 850;
 }
 
 .setup-choice-group {
@@ -1121,6 +1126,12 @@ h2 {
 
 .cash-out-action:hover {
   transform: translateY(-1px);
+}
+
+.cash-out-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+  transform: none;
 }
 .game-over-action {
   position: absolute;

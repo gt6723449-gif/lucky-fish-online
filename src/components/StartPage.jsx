@@ -15,21 +15,9 @@ export function StartPage({ t, lang, onStart }) {
         </div>
 
         <p className="start-subtitle">{t.onlineCardGame}</p>
+        <p className="start-experience-tip">{t.startExperienceTip}</p>
 
         <form onSubmit={handleStartGame}>
-          <fieldset className="setup-choice-group lucky-setup-group">
-            <div className="setup-choice-grid lucky-setup-grid">
-              <div className="setup-choice-card selected-setup-choice">
-                <strong>{t.target}</strong>
-                <span>100</span>
-              </div>
-              <div className="setup-choice-card selected-setup-choice">
-                <strong>{t.score}</strong>
-                <span>+1</span>
-              </div>
-            </div>
-          </fieldset>
-
           <button type="submit" className="start-button">
             {t.startGame}
           </button>
@@ -38,4 +26,3 @@ export function StartPage({ t, lang, onStart }) {
     </main>
   );
 }
-

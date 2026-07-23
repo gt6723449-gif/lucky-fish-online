@@ -236,6 +236,7 @@ export function GamePage({
     };
   }, [lang]);
 
+  const isPlaying = phase === 'playing';
   const isGameOver = phase === 'gameOver';
   const progress = Math.min(100, Math.max(0, (score / TARGET_SCORE) * 100));
 
@@ -263,7 +264,7 @@ export function GamePage({
         ))}
 
         {isPlaying && (
-          <button className="secondary-button cash-out-action" type="button" onClick={onCashOut}>
+          <button className="secondary-button cash-out-action" type="button" onClick={onCashOut} disabled={score < 5}>
             {t.cashOut}
           </button>
         )}
