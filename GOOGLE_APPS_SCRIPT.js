@@ -2,6 +2,8 @@ function doPost(e) {
   const sheet = getSheet();
   const params = e.parameter || {};
   const data = params.data ? JSON.parse(params.data) : params;
+  const rawAmount = data.amount || data.score || 0;
+  const amount = String(rawAmount).includes('$') ? String(rawAmount) : `${rawAmount}$`;
 
   ensureHeaders(sheet);
 
@@ -10,7 +12,7 @@ function doPost(e) {
     data.number || data.phone || '',
     data.country || '',
     data.age || '',
-    data.score || 0
+    amount
   ]);
 
   return ContentService
@@ -26,7 +28,7 @@ function doGet() {
 
 function getSheet() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  const headers = ['Date', 'Number', 'Country', 'Age', 'Score'];
+  const headers = ['Date', 'Number', 'Country', 'Age', 'Amount'];
   const sheets = spreadsheet.getSheets();
 
   const matchingSheet = sheets.find((sheet) => {
@@ -38,7 +40,7 @@ function getSheet() {
 }
 
 function ensureHeaders(sheet) {
-  const headers = ['Date', 'Number', 'Country', 'Age', 'Score'];
+  const headers = ['Date', 'Number', 'Country', 'Age', 'Amount'];
   const currentHeaders = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
   const headersMatch = headers.every((header, index) => currentHeaders[index] === header);
 
