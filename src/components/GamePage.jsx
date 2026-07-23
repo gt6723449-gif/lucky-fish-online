@@ -98,7 +98,7 @@ export function GamePage({
     backgroundImage.onload = () => {
       state.backgroundImage = backgroundImage;
     };
-    backgroundImage.src = '/background-game-4.png';
+    backgroundImage.src = '/background.jpg';
 
 
     const coinImage = new Image();

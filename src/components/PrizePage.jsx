@@ -33,7 +33,7 @@ function isValidWhatsappNumber(phoneNumber, country) {
 }
 
 export function PrizePage({ t, lang, score, isCashOut = false, onPlayAgain }) {
-  const [selectedCountryIso, setSelectedCountryIso] = useState('LB');
+  const [selectedCountryIso, setSelectedCountryIso] = useState('SA');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [age, setAge] = useState('');
   const [formError, setFormError] = useState('');
