@@ -222,7 +222,7 @@ export default function App() {
           score={score}
           best={best}
           isCashOut={prizeMode === 'cashOut'}
-          onPlayAgain={startGame}
+          onPlayAgain={returnToInfoPage}
           onLanguage={() => setPhase('language')}
         />
       )}
