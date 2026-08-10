@@ -73,7 +73,8 @@ export default function App() {
         country: playerInfo.country,
         age: playerInfo.age,
         amount,
-        status
+        status,
+        resultStatus: status
       })
     });
 
