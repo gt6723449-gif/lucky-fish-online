@@ -2,11 +2,16 @@ function doPost(e) {
   const sheet = getSheet();
   const params = e.parameter || {};
   const data = params.data ? JSON.parse(params.data) : params;
+
+  ensureHeaders(sheet);
+
+  if (data.action === 'checkPhone') {
+    return jsonResponse({ ok: true, exists: phoneExists(sheet, data.number || data.phone || '') });
+  }
+
   const rawAmount = data.amount || 0;
   const amount = String(rawAmount).includes('$') ? String(rawAmount) : `${rawAmount}$`;
   const status = data.status || data.resultStatus || '';
-
-  ensureHeaders(sheet);
 
   const headers = getHeaders(sheet);
   const row = new Array(headers.length).fill('');
@@ -20,12 +25,26 @@ function doPost(e) {
 
   sheet.appendRow(row);
 
-  return ContentService
-    .createTextOutput(JSON.stringify({ ok: true }))
-    .setMimeType(ContentService.MimeType.JSON);
+  return jsonResponse({ ok: true });
 }
 
-function doGet() {
+function doGet(e) {
+  const params = e.parameter || {};
+
+  if (params.action === 'checkPhone') {
+    const sheet = getSheet();
+    ensureHeaders(sheet);
+    const payload = { ok: true, exists: phoneExists(sheet, params.number || '') };
+
+    if (params.callback) {
+      return ContentService
+        .createTextOutput(`${params.callback}(${JSON.stringify(payload)})`)
+        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+    }
+
+    return jsonResponse(payload);
+  }
+
   return ContentService
     .createTextOutput('Lucky Fish Apps Script is running')
     .setMimeType(ContentService.MimeType.TEXT);
@@ -67,4 +86,26 @@ function setCell(row, headers, header, value) {
   if (index >= 0) {
     row[index] = value;
   }
+}
+
+function phoneExists(sheet, number) {
+  const normalizedNumber = normalizePhone(number);
+  if (!normalizedNumber) return false;
+
+  const headers = getHeaders(sheet);
+  const numberColumnIndex = headers.indexOf('Number') + 1;
+  if (numberColumnIndex <= 0 || sheet.getLastRow() < 2) return false;
+
+  const values = sheet.getRange(2, numberColumnIndex, sheet.getLastRow() - 1, 1).getValues();
+  return values.some((row) => normalizePhone(row[0]) === normalizedNumber);
+}
+
+function normalizePhone(value) {
+  return String(value || '').replace(/\D/g, '');
+}
+
+function jsonResponse(payload) {
+  return ContentService
+    .createTextOutput(JSON.stringify(payload))
+    .setMimeType(ContentService.MimeType.JSON);
 }

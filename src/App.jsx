@@ -37,10 +37,68 @@ export default function App() {
     setPhase('info');
   };
 
-  const handleInfoSubmit = (info) => {
+  const checkPhoneExists = async (number) => {
+    const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+    if (!scriptUrl) {
+      return { ok: false, error: t.scriptMissing };
+    }
+
+    return new Promise((resolve) => {
+      const callbackName = `luckyFishPhoneCheck_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+      const script = document.createElement('script');
+      const cleanup = () => {
+        delete window[callbackName];
+        script.remove();
+      };
+
+      const timeout = window.setTimeout(() => {
+        cleanup();
+        resolve({ ok: false, error: t.submitError });
+      }, 10000);
+
+      window[callbackName] = (result) => {
+        window.clearTimeout(timeout);
+        cleanup();
+        resolve({ ok: true, exists: Boolean(result && result.exists) });
+      };
+
+      const url = new URL(scriptUrl);
+      url.searchParams.set('action', 'checkPhone');
+      url.searchParams.set('number', number);
+      url.searchParams.set('callback', callbackName);
+      script.onerror = () => {
+        window.clearTimeout(timeout);
+        cleanup();
+        resolve({ ok: false, error: t.submitError });
+      };
+      script.src = url.toString();
+      document.body.appendChild(script);
+    });
+  };
+
+  const handleInfoSubmit = async (info) => {
+    const checkResult = await checkPhoneExists(info.number);
+
+    if (!checkResult.ok) {
+      return { ok: false, error: checkResult.error };
+    }
+
+    if (checkResult.exists) {
+      return { ok: false, error: t.phoneAlreadyUsed };
+    }
+
     setPlayerInfo(info);
     window.localStorage.setItem('luckyFishPlayerInfo', JSON.stringify(info));
     setPhase('start');
+    return { ok: true };
+  };
+
+  const returnToInfoPage = () => {
+    resultSubmittedRef.current = false;
+    setPlayerInfo(null);
+    window.localStorage.removeItem('luckyFishPlayerInfo');
+    setScore(0);
+    setPhase('info');
   };
 
   const startGame = () => {
@@ -139,7 +197,7 @@ export default function App() {
           onScore={handleScore}
           onGameOver={handleGameOver}
           onCashOut={handleCashOut}
-          onRestart={startGame}
+          onRestart={returnToInfoPage}
           onLanguage={() => setPhase('language')}
         />
       )}

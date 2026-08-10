@@ -36,6 +36,7 @@ export function InfoPage({ t, lang, onSubmit }) {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [age, setAge] = useState('');
   const [formError, setFormError] = useState('');
+  const [isChecking, setIsChecking] = useState(false);
 
   const selectedCountry = COUNTRIES.find((country) => country.iso === selectedCountryIso) || COUNTRIES[0];
   const canSubmit = isValidWhatsappNumber(phoneNumber, selectedCountry) && age.length > 0;
@@ -59,7 +60,7 @@ export function InfoPage({ t, lang, onSubmit }) {
     setFormError('');
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     const normalizedPhone = normalizePhoneNumber(phoneNumber, selectedCountry);
@@ -73,11 +74,17 @@ export function InfoPage({ t, lang, onSubmit }) {
       return;
     }
 
-    onSubmit({
+    setIsChecking(true);
+    const result = await onSubmit({
       number: normalizedPhone,
       country: getCountryName(selectedCountry),
       age
     });
+    setIsChecking(false);
+
+    if (result && result.ok === false) {
+      setFormError(result.error || t.submitError);
+    }
   }
 
   return (
@@ -129,8 +136,8 @@ export function InfoPage({ t, lang, onSubmit }) {
 
           {formError && <p className="claim-error">{formError}</p>}
 
-          <button type="submit" disabled={!canSubmit}>
-            {t.continueToStart}
+          <button type="submit" disabled={!canSubmit || isChecking}>
+            {isChecking ? t.checkingPhone : t.continueToStart}
           </button>
         </form>
       </section>
