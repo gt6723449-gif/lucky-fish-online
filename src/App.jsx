@@ -43,12 +43,24 @@ export default function App() {
       return { ok: false, error: t.scriptMissing };
     }
 
+    const checkUrl = new URL(scriptUrl);
+    checkUrl.searchParams.set('action', 'checkPhone');
+    checkUrl.searchParams.set('number', number);
+
+    try {
+      const response = await fetch(checkUrl.toString(), { method: 'GET' });
+      const result = await response.json();
+      return { ok: true, exists: Boolean(result && result.exists) };
+    } catch (fetchError) {
+      console.log('Phone check fetch failed, trying script fallback:', fetchError);
+    }
+
     return new Promise((resolve) => {
       const callbackName = `luckyFishPhoneCheck_${Date.now()}_${Math.random().toString(36).slice(2)}`;
       const script = document.createElement('script');
       const cleanup = () => {
-        delete window[callbackName];
-        script.remove();
+        if (window[callbackName]) delete window[callbackName];
+        if (script.parentNode) script.remove();
       };
 
       const timeout = window.setTimeout(() => {
@@ -62,16 +74,17 @@ export default function App() {
         resolve({ ok: true, exists: Boolean(result && result.exists) });
       };
 
-      const url = new URL(scriptUrl);
-      url.searchParams.set('action', 'checkPhone');
-      url.searchParams.set('number', number);
-      url.searchParams.set('callback', callbackName);
+      const fallbackUrl = new URL(scriptUrl);
+      fallbackUrl.searchParams.set('action', 'checkPhone');
+      fallbackUrl.searchParams.set('number', number);
+      fallbackUrl.searchParams.set('callback', callbackName);
+      script.async = true;
       script.onerror = () => {
         window.clearTimeout(timeout);
         cleanup();
         resolve({ ok: false, error: t.submitError });
       };
-      script.src = url.toString();
+      script.src = fallbackUrl.toString();
       document.body.appendChild(script);
     });
   };

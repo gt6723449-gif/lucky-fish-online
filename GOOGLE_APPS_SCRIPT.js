@@ -39,7 +39,7 @@ function doGet(e) {
     if (params.callback) {
       return ContentService
         .createTextOutput(`${params.callback}(${JSON.stringify(payload)})`)
-        .setMimeType(ContentService.MimeType.JAVASCRIPT);
+        .setMimeType(ContentService.MimeType.TEXT);
     }
 
     return jsonResponse(payload);
