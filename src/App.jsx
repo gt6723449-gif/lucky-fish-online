@@ -89,6 +89,36 @@ export default function App() {
     });
   };
 
+  const submitRegistration = async (info) => {
+    const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
+    if (!scriptUrl) {
+      console.log('Missing VITE_GOOGLE_SCRIPT_URL');
+      return;
+    }
+
+    const body = new URLSearchParams({
+      data: JSON.stringify({
+        date: new Date().toISOString(),
+        number: info.number,
+        country: info.country,
+        age: info.age,
+        amount: '',
+        status: 'Registered',
+        resultStatus: 'Registered'
+      })
+    });
+
+    try {
+      await fetch(scriptUrl, {
+        method: 'POST',
+        body,
+        mode: 'no-cors'
+      });
+    } catch (error) {
+      console.log('Registration save failed:', error);
+    }
+  };
+
   const handleInfoSubmit = async (info) => {
     const checkResult = await checkPhoneExists(info.number);
 
@@ -101,6 +131,7 @@ export default function App() {
     }
 
     setPlayerInfo(info);
+    submitRegistration(info);
     window.localStorage.setItem('luckyFishPlayerInfo', JSON.stringify(info));
     setPhase('start');
     return { ok: true };

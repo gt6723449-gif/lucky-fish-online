@@ -9,22 +9,7 @@ function doPost(e) {
     return jsonResponse({ ok: true, exists: phoneExists(sheet, data.number || data.phone || '') });
   }
 
-  const rawAmount = data.amount || 0;
-  const amount = String(rawAmount).includes('$') ? String(rawAmount) : `${rawAmount}$`;
-  const status = data.status || data.resultStatus || '';
-
-  const headers = getHeaders(sheet);
-  const row = new Array(headers.length).fill('');
-
-  setCell(row, headers, 'Date', data.date ? new Date(data.date) : new Date());
-  setCell(row, headers, 'Number', data.number || data.phone || '');
-  setCell(row, headers, 'Country', data.country || '');
-  setCell(row, headers, 'Age', data.age || '');
-  setCell(row, headers, 'Amount', amount);
-  setCell(row, headers, 'Status', status);
-
-  sheet.appendRow(row);
-
+  saveSubmission(sheet, data);
   return jsonResponse({ ok: true });
 }
 
@@ -38,7 +23,7 @@ function doGet(e) {
 
     if (params.callback) {
       return ContentService
-        .createTextOutput(`${params.callback}(${JSON.stringify(payload)})`)
+        .createTextOutput(params.callback + '(' + JSON.stringify(payload) + ');')
         .setMimeType(ContentService.MimeType.TEXT);
     }
 
@@ -48,6 +33,40 @@ function doGet(e) {
   return ContentService
     .createTextOutput('Lucky Fish Apps Script is running')
     .setMimeType(ContentService.MimeType.TEXT);
+}
+
+function saveSubmission(sheet, data) {
+  const headers = getHeaders(sheet);
+  const number = data.number || data.phone || '';
+  const rowNumber = findPhoneRow(sheet, number);
+  const targetRow = rowNumber || sheet.getLastRow() + 1;
+  const existingRow = rowNumber
+    ? sheet.getRange(rowNumber, 1, 1, headers.length).getValues()[0]
+    : new Array(headers.length).fill('');
+  const row = existingRow.slice();
+  const rawAmount = data.amount;
+  const amount = rawAmount === undefined || rawAmount === null || rawAmount === ''
+    ? ''
+    : String(rawAmount).includes('$') ? String(rawAmount) : String(rawAmount) + '$';
+  const status = data.status || data.resultStatus || '';
+
+  if (!getCell(row, headers, 'Date')) {
+    setCell(row, headers, 'Date', data.date ? new Date(data.date) : new Date());
+  }
+
+  setCell(row, headers, 'Number', number);
+  setCell(row, headers, 'Country', data.country || getCell(row, headers, 'Country') || '');
+  setCell(row, headers, 'Age', data.age || getCell(row, headers, 'Age') || '');
+
+  if (amount !== '') {
+    setCell(row, headers, 'Amount', amount);
+  }
+
+  if (status) {
+    setCell(row, headers, 'Status', status);
+  }
+
+  sheet.getRange(targetRow, 1, 1, headers.length).setValues([row]);
 }
 
 function getSheet() {
@@ -88,16 +107,26 @@ function setCell(row, headers, header, value) {
   }
 }
 
+function getCell(row, headers, header) {
+  const index = headers.indexOf(header);
+  return index >= 0 ? row[index] : '';
+}
+
 function phoneExists(sheet, number) {
+  return Boolean(findPhoneRow(sheet, number));
+}
+
+function findPhoneRow(sheet, number) {
   const normalizedNumber = normalizePhone(number);
-  if (!normalizedNumber) return false;
+  if (!normalizedNumber) return null;
 
   const headers = getHeaders(sheet);
   const numberColumnIndex = headers.indexOf('Number') + 1;
-  if (numberColumnIndex <= 0 || sheet.getLastRow() < 2) return false;
+  if (numberColumnIndex <= 0 || sheet.getLastRow() < 2) return null;
 
   const values = sheet.getRange(2, numberColumnIndex, sheet.getLastRow() - 1, 1).getValues();
-  return values.some((row) => normalizePhone(row[0]) === normalizedNumber);
+  const foundIndex = values.findIndex((row) => normalizePhone(row[0]) === normalizedNumber);
+  return foundIndex >= 0 ? foundIndex + 2 : null;
 }
 
 function normalizePhone(value) {
