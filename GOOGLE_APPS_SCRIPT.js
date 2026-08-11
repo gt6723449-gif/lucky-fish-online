@@ -1,16 +1,23 @@
 function doPost(e) {
-  const sheet = getSheet();
-  const params = e.parameter || {};
-  const data = params.data ? JSON.parse(params.data) : params;
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
 
-  ensureHeaders(sheet);
+  try {
+    const sheet = getSheet();
+    const params = e.parameter || {};
+    const data = params.data ? JSON.parse(params.data) : params;
 
-  if (data.action === 'checkPhone') {
-    return jsonResponse({ ok: true, exists: phoneExists(sheet, data.number || data.phone || '') });
+    ensureHeaders(sheet);
+
+    if (data.action === 'checkPhone') {
+      return jsonResponse({ ok: true, exists: phoneExists(sheet, data.number || data.phone || '') });
+    }
+
+    saveSubmission(sheet, data);
+    return jsonResponse({ ok: true });
+  } finally {
+    lock.releaseLock();
   }
-
-  saveSubmission(sheet, data);
-  return jsonResponse({ ok: true });
 }
 
 function doGet(e) {

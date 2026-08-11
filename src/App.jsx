@@ -93,7 +93,7 @@ export default function App() {
     const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
     if (!scriptUrl) {
       console.log('Missing VITE_GOOGLE_SCRIPT_URL');
-      return;
+      return false;
     }
 
     const body = new URLSearchParams({
@@ -114,8 +114,10 @@ export default function App() {
         body,
         mode: 'no-cors'
       });
+      return true;
     } catch (error) {
       console.log('Registration save failed:', error);
+      return false;
     }
   };
 
@@ -130,8 +132,12 @@ export default function App() {
       return { ok: false, error: t.phoneAlreadyUsed };
     }
 
+    const registrationSaved = await submitRegistration(info);
+    if (!registrationSaved) {
+      return { ok: false, error: t.submitError };
+    }
+
     setPlayerInfo(info);
-    submitRegistration(info);
     window.localStorage.setItem('luckyFishPlayerInfo', JSON.stringify(info));
     setPhase('start');
     return { ok: true };
@@ -165,7 +171,7 @@ export default function App() {
     const scriptUrl = import.meta.env.VITE_GOOGLE_SCRIPT_URL;
     if (!scriptUrl) {
       console.log('Missing VITE_GOOGLE_SCRIPT_URL');
-      return;
+      return false;
     }
 
     const body = new URLSearchParams({
