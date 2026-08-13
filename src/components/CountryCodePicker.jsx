@@ -31,6 +31,7 @@ export function CountryCodePicker({ selectedIso, language, t, onChange }) {
   const triggerRef = useRef(null);
   const searchRef = useRef(null);
   const popoverRef = useRef(null);
+  const listRef = useRef(null);
   const optionRefs = useRef([]);
   const idPrefix = useId().replace(/:/g, '');
   const listboxId = `${idPrefix}-country-listbox`;
@@ -62,42 +63,54 @@ export function CountryCodePicker({ selectedIso, language, t, onChange }) {
     if (!trigger) return;
 
     const rect = trigger.getBoundingClientRect();
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
+    const visualViewport = window.visualViewport;
+    const viewportLeft = visualViewport?.offsetLeft || 0;
+    const viewportTop = visualViewport?.offsetTop || 0;
+    const viewportWidth = visualViewport?.width || document.documentElement.clientWidth || window.innerWidth;
+    const viewportHeight = visualViewport?.height || window.innerHeight;
+    const viewportRight = viewportLeft + viewportWidth;
+    const viewportBottom = viewportTop + viewportHeight;
     const margin = 8;
 
     if (viewportWidth <= 640) {
+      const height = Math.min(
+        520,
+        Math.max(140, Math.floor(viewportHeight * 0.7)),
+        Math.max(1, viewportHeight - margin * 2)
+      );
+
       setPopoverStyle({
-        top: 'auto',
-        right: margin,
-        bottom: margin,
-        left: margin,
-        width: 'auto',
-        maxHeight: 'min(70dvh, 520px)'
+        top: Math.round(viewportBottom - height - margin),
+        right: 'auto',
+        bottom: 'auto',
+        left: Math.round(viewportLeft + margin),
+        width: Math.max(1, Math.round(viewportWidth - margin * 2)),
+        height: Math.round(height),
+        maxHeight: 'none'
       });
       return;
     }
 
     const width = Math.min(360, viewportWidth - margin * 2);
     const maximumHeight = Math.min(420, Math.max(160, viewportHeight - margin * 2));
-    const spaceBelow = Math.max(0, viewportHeight - rect.bottom - margin);
-    const spaceAbove = Math.max(0, rect.top - margin);
+    const spaceBelow = Math.max(0, viewportBottom - rect.bottom - margin);
+    const spaceAbove = Math.max(0, rect.top - viewportTop - margin);
     const placeAbove = spaceBelow < 240 && spaceAbove > spaceBelow;
     const availableSpace = placeAbove ? spaceAbove : spaceBelow;
     const maxHeight = Math.min(maximumHeight, Math.max(160, availableSpace));
     const preferredLeft = direction === 'rtl' ? rect.right - width : rect.left;
-    const left = Math.max(margin, Math.min(preferredLeft, viewportWidth - width - margin));
+    const left = Math.max(viewportLeft + margin, Math.min(preferredLeft, viewportRight - width - margin));
     const top = placeAbove
-      ? Math.max(margin, rect.top - maxHeight - 4)
-      : Math.min(rect.bottom + 4, viewportHeight - maxHeight - margin);
+      ? Math.max(viewportTop + margin, rect.top - maxHeight - 4)
+      : Math.min(rect.bottom + 4, viewportBottom - maxHeight - margin);
 
-    setPopoverStyle({ top, left, width, maxHeight });
+    setPopoverStyle({ top, right: 'auto', bottom: 'auto', left, width, height: 'auto', maxHeight });
   }
 
-  function openPicker(preferredIndex) {
+  function openPicker() {
     const selectedIndex = countryOptions.findIndex((country) => country.iso === selectedIso);
     setQuery('');
-    setActiveIndex(preferredIndex ?? Math.max(0, selectedIndex));
+    setActiveIndex(Math.max(0, selectedIndex));
     setIsOpen(true);
   }
 
@@ -121,7 +134,7 @@ export function CountryCodePicker({ selectedIso, language, t, onChange }) {
       openPicker();
     } else if (event.key === 'ArrowUp') {
       event.preventDefault();
-      openPicker(countryOptions.length - 1);
+      openPicker();
     } else if (event.key === 'Escape' && isOpen) {
       event.preventDefault();
       closePicker();
@@ -129,8 +142,10 @@ export function CountryCodePicker({ selectedIso, language, t, onChange }) {
   }
 
   function handleSearchChange(event) {
-    setQuery(event.target.value);
-    setActiveIndex(0);
+    const nextQuery = event.target.value;
+    const selectedIndex = countryOptions.findIndex((country) => country.iso === selectedIso);
+    setQuery(nextQuery);
+    setActiveIndex(normalizeSearch(nextQuery, language) ? 0 : Math.max(0, selectedIndex));
   }
 
   function handleSearchKeyDown(event) {
@@ -162,20 +177,45 @@ export function CountryCodePicker({ selectedIso, language, t, onChange }) {
   useLayoutEffect(() => {
     if (!isOpen) return undefined;
 
+    let animationFrame = 0;
+    const visualViewport = window.visualViewport;
+    const schedulePositionUpdate = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(updatePopoverPosition);
+    };
+    const handleWindowScroll = (event) => {
+      if (popoverRef.current?.contains(event.target)) return;
+      schedulePositionUpdate();
+    };
+
     updatePopoverPosition();
-    window.addEventListener('resize', updatePopoverPosition);
-    window.addEventListener('scroll', updatePopoverPosition, true);
+    window.addEventListener('resize', schedulePositionUpdate);
+    window.addEventListener('scroll', handleWindowScroll, true);
+    visualViewport?.addEventListener('resize', schedulePositionUpdate);
+    visualViewport?.addEventListener('scroll', schedulePositionUpdate);
 
     return () => {
-      window.removeEventListener('resize', updatePopoverPosition);
-      window.removeEventListener('scroll', updatePopoverPosition, true);
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', schedulePositionUpdate);
+      window.removeEventListener('scroll', handleWindowScroll, true);
+      visualViewport?.removeEventListener('resize', schedulePositionUpdate);
+      visualViewport?.removeEventListener('scroll', schedulePositionUpdate);
     };
   }, [direction, isOpen]);
 
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    const animationFrame = window.requestAnimationFrame(() => searchRef.current?.focus());
+    const animationFrame = window.requestAnimationFrame(() => {
+      const search = searchRef.current;
+      if (!search) return;
+
+      try {
+        search.focus({ preventScroll: true });
+      } catch {
+        search.focus();
+      }
+    });
     const handleOutsidePointer = (event) => {
       if (triggerRef.current?.contains(event.target) || popoverRef.current?.contains(event.target)) return;
       closePicker();
@@ -188,10 +228,23 @@ export function CountryCodePicker({ selectedIso, language, t, onChange }) {
     };
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!isOpen || !activeCountry) return;
-    optionRefs.current[activeIndex]?.scrollIntoView({ block: 'nearest' });
-  }, [activeCountry, activeIndex, isOpen]);
+  useLayoutEffect(() => {
+    const list = listRef.current;
+    const option = optionRefs.current[activeIndex];
+    if (!isOpen || !popoverStyle || !activeCountry || !list || !option) return;
+
+    const listRect = list.getBoundingClientRect();
+    const optionRect = option.getBoundingClientRect();
+
+    if (!normalizeSearch(query, language) && activeCountry.iso === selectedIso) {
+      const optionTop = optionRect.top - listRect.top + list.scrollTop;
+      list.scrollTop = Math.max(0, optionTop - (list.clientHeight - optionRect.height) / 2);
+    } else if (optionRect.top < listRect.top) {
+      list.scrollTop += optionRect.top - listRect.top;
+    } else if (optionRect.bottom > listRect.bottom) {
+      list.scrollTop += optionRect.bottom - listRect.bottom;
+    }
+  }, [activeCountry, activeIndex, isOpen, language, popoverStyle, query, selectedIso]);
 
   const popover = isOpen && typeof document !== 'undefined'
     ? createPortal(
@@ -220,7 +273,7 @@ export function CountryCodePicker({ selectedIso, language, t, onChange }) {
         />
 
         {filteredCountries.length > 0 ? (
-          <ul className="country-picker-list" id={listboxId} role="listbox">
+          <ul ref={listRef} className="country-picker-list" id={listboxId} role="listbox">
             {filteredCountries.map((country, index) => (
               <li
                 ref={(node) => {
