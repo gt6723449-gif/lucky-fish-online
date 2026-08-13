@@ -1,17 +1,6 @@
 import React, { useState } from 'react';
 import { COUNTRIES } from '../data/countries.js';
-
-function getLocalizedCountryName(country, language) {
-  if (typeof Intl === 'undefined' || !Intl.DisplayNames) {
-    return country.name;
-  }
-
-  try {
-    return new Intl.DisplayNames([language], { type: 'region' }).of(country.iso) || country.name;
-  } catch {
-    return country.name;
-  }
-}
+import { CountryCodePicker, getLocalizedCountryName } from './CountryCodePicker.jsx';
 
 function normalizePhoneNumber(phoneNumber, country) {
   const trimmedNumber = phoneNumber.trim();
@@ -27,19 +16,27 @@ function normalizePhoneNumber(phoneNumber, country) {
   return `+${countryCode}${nationalDigits}`;
 }
 
-function isValidWhatsappNumber(phoneNumber, country) {
+function isValidPhoneNumber(phoneNumber, country) {
   return Boolean(normalizePhoneNumber(phoneNumber, country));
+}
+
+function normalizeTelegramUsername(value) {
+  const username = value.trim().replace(/^@/, '');
+  if (!username) return '';
+  if (!/^[A-Za-z0-9_]{5,32}$/.test(username)) return null;
+  return `@${username}`;
 }
 
 export function InfoPage({ t, lang, onSubmit }) {
   const [selectedCountryIso, setSelectedCountryIso] = useState('SA');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [telegramUsername, setTelegramUsername] = useState('');
   const [age, setAge] = useState('');
   const [formError, setFormError] = useState('');
   const [isChecking, setIsChecking] = useState(false);
 
   const selectedCountry = COUNTRIES.find((country) => country.iso === selectedCountryIso) || COUNTRIES[0];
-  const canSubmit = isValidWhatsappNumber(phoneNumber, selectedCountry) && age.length > 0;
+  const canSubmit = isValidPhoneNumber(phoneNumber, selectedCountry) && age.length > 0;
 
   function getCountryName(country) {
     return getLocalizedCountryName(country, lang);
@@ -50,8 +47,13 @@ export function InfoPage({ t, lang, onSubmit }) {
     setFormError('');
   }
 
-  function handleCountryChange(event) {
-    setSelectedCountryIso(event.target.value);
+  function handleCountryChange(countryIso) {
+    setSelectedCountryIso(countryIso);
+    setFormError('');
+  }
+
+  function handleTelegramChange(event) {
+    setTelegramUsername(event.target.value);
     setFormError('');
   }
 
@@ -74,16 +76,28 @@ export function InfoPage({ t, lang, onSubmit }) {
       return;
     }
 
-    setIsChecking(true);
-    const result = await onSubmit({
-      number: normalizedPhone,
-      country: getCountryName(selectedCountry),
-      age
-    });
-    setIsChecking(false);
+    const normalizedTelegram = normalizeTelegramUsername(telegramUsername);
+    if (normalizedTelegram === null) {
+      setFormError(t.invalidTelegram);
+      return;
+    }
 
-    if (result && result.ok === false) {
-      setFormError(result.error || t.submitError);
+    setIsChecking(true);
+    try {
+      const result = await onSubmit({
+        number: normalizedPhone,
+        country: getCountryName(selectedCountry),
+        age,
+        telegram: normalizedTelegram
+      });
+
+      if (result && result.ok === false) {
+        setFormError(result.error || t.submitError);
+      }
+    } catch {
+      setFormError(t.submitError);
+    } finally {
+      setIsChecking(false);
     }
   }
 
@@ -99,30 +113,48 @@ export function InfoPage({ t, lang, onSubmit }) {
         <p>{t.infoSubtitle}</p>
 
         <form onSubmit={handleSubmit}>
-          <label>
-            {t.whatsappPhone}
+          <div className="registration-field">
+            <label htmlFor="phone-number">{t.phoneNumber}</label>
             <div className="phone-row phone-code-row">
-              <select value={selectedCountryIso} onChange={handleCountryChange} aria-label={t.countryCode} dir="ltr">
-                {COUNTRIES.map((country) => (
-                  <option value={country.iso} key={country.iso}>
-                    +{country.dialCode} {getCountryName(country)}
-                  </option>
-                ))}
-              </select>
+              <CountryCodePicker
+                selectedIso={selectedCountryIso}
+                language={lang}
+                t={t}
+                onChange={handleCountryChange}
+              />
               <input
+                id="phone-number"
                 value={phoneNumber}
                 onChange={handlePhoneChange}
                 placeholder={t.phonePlaceholder}
                 inputMode="tel"
                 autoComplete="tel-national"
                 dir="ltr"
+                required
               />
             </div>
-          </label>
+          </div>
 
-          <label>
-            {t.age}
+          <div className="registration-field">
+            <label htmlFor="telegram-username">{t.telegramUsername}</label>
             <input
+              id="telegram-username"
+              type="text"
+              value={telegramUsername}
+              onChange={handleTelegramChange}
+              placeholder={t.telegramPlaceholder}
+              autoComplete="off"
+              autoCapitalize="none"
+              spellCheck="false"
+              maxLength={33}
+              dir="ltr"
+            />
+          </div>
+
+          <div className="registration-field">
+            <label htmlFor="player-age">{t.age}</label>
+            <input
+              id="player-age"
               type="text"
               value={age}
               onChange={handleAgeChange}
@@ -132,9 +164,9 @@ export function InfoPage({ t, lang, onSubmit }) {
               dir="ltr"
               required
             />
-          </label>
+          </div>
 
-          {formError && <p className="claim-error">{formError}</p>}
+          {formError && <p className="claim-error" role="alert">{formError}</p>}
 
           <button type="submit" disabled={!canSubmit || isChecking}>
             {isChecking ? t.checkingPhone : t.continueToStart}
