@@ -31,6 +31,12 @@ VITE_GOOGLE_SCRIPT_URL=https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exe
 
 For local development, copy `.env.example` to `.env` and replace the value.
 
+The script creates or updates these Sheet columns without moving existing data:
+
+```text
+Date | Number | Country | Age | Amount | Status | Telegram
+```
+
 ## Contact link
 
 Edit the contact button URL in:

@@ -1,3 +1,6 @@
+const CORE_HEADERS = ['Date', 'Number', 'Country', 'Age', 'Amount', 'Status'];
+const REQUIRED_HEADERS = CORE_HEADERS.concat(['Telegram']);
+
 function doPost(e) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
@@ -24,9 +27,17 @@ function doGet(e) {
   const params = e.parameter || {};
 
   if (params.action === 'checkPhone') {
-    const sheet = getSheet();
-    ensureHeaders(sheet);
-    const payload = { ok: true, exists: phoneExists(sheet, params.number || '') };
+    const lock = LockService.getScriptLock();
+    lock.waitLock(10000);
+    let payload;
+
+    try {
+      const sheet = getSheet();
+      ensureHeaders(sheet);
+      payload = { ok: true, exists: phoneExists(sheet, params.number || '') };
+    } finally {
+      lock.releaseLock();
+    }
 
     if (params.callback) {
       return ContentService
@@ -56,6 +67,7 @@ function saveSubmission(sheet, data) {
     ? ''
     : String(rawAmount).includes('$') ? String(rawAmount) : String(rawAmount) + '$';
   const status = data.status || data.resultStatus || '';
+  const telegram = normalizeTelegram(data.telegram);
 
   if (!getCell(row, headers, 'Date')) {
     setCell(row, headers, 'Date', data.date ? new Date(data.date) : new Date());
@@ -64,6 +76,10 @@ function saveSubmission(sheet, data) {
   setCell(row, headers, 'Number', number);
   setCell(row, headers, 'Country', data.country || getCell(row, headers, 'Country') || '');
   setCell(row, headers, 'Age', data.age || getCell(row, headers, 'Age') || '');
+
+  if (telegram) {
+    setCell(row, headers, 'Telegram', telegram);
+  }
 
   if (amount !== '') {
     setCell(row, headers, 'Amount', amount);
@@ -78,29 +94,35 @@ function saveSubmission(sheet, data) {
 
 function getSheet() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  const headers = ['Date', 'Number', 'Country', 'Age', 'Amount', 'Status'];
   const sheets = spreadsheet.getSheets();
 
   const matchingSheet = sheets.find((sheet) => {
-    const values = sheet.getRange(1, 1, 1, Math.max(headers.length, sheet.getLastColumn())).getValues()[0];
-    return headers.every((header) => values.includes(header));
+    const lastColumn = sheet.getLastColumn();
+    if (lastColumn === 0) return false;
+    const values = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+    return CORE_HEADERS.every((header) => values.includes(header));
   });
 
   return matchingSheet || spreadsheet.getActiveSheet() || sheets[0];
 }
 
 function ensureHeaders(sheet) {
-  const requiredHeaders = ['Date', 'Number', 'Country', 'Age', 'Amount', 'Status'];
-  const lastColumn = Math.max(requiredHeaders.length, sheet.getLastColumn());
-  const currentHeaders = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  const lastColumn = sheet.getLastColumn();
+  const currentHeaders = lastColumn > 0
+    ? sheet.getRange(1, 1, 1, lastColumn).getValues()[0]
+    : [];
+  let changed = false;
 
-  requiredHeaders.forEach((header) => {
+  REQUIRED_HEADERS.forEach((header) => {
     if (!currentHeaders.includes(header)) {
       currentHeaders.push(header);
+      changed = true;
     }
   });
 
-  sheet.getRange(1, 1, 1, currentHeaders.length).setValues([currentHeaders]);
+  if (changed) {
+    sheet.getRange(1, 1, 1, currentHeaders.length).setValues([currentHeaders]);
+  }
 }
 
 function getHeaders(sheet) {
@@ -138,6 +160,11 @@ function findPhoneRow(sheet, number) {
 
 function normalizePhone(value) {
   return String(value || '').replace(/\D/g, '');
+}
+
+function normalizeTelegram(value) {
+  const username = String(value || '').trim().replace(/^@/, '');
+  return /^[A-Za-z0-9_]{5,32}$/.test(username) ? '@' + username : '';
 }
 
 function jsonResponse(payload) {
