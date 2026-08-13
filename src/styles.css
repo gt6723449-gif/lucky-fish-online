@@ -699,6 +699,13 @@ h2 {
   text-align: start;
 }
 
+.registration-field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  text-align: start;
+}
+
 .winner-claim-card input,
 .winner-claim-card select {
   width: 100%;
@@ -720,7 +727,7 @@ h2 {
   background: #ffffff;
 }
 
-.phone-row span {
+.phone-row > span {
   display: grid;
   place-content: center;
   justify-items: center;
@@ -734,6 +741,112 @@ h2 {
 .phone-row input {
   border: 0;
   border-radius: 0;
+}
+
+.country-picker-control {
+  min-width: 0;
+}
+
+.winner-claim-card button.country-picker-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+  gap: 6px;
+  padding: 0 8px;
+  border: 0;
+  border-inline-end: 1px solid rgba(7, 59, 76, 0.16);
+  border-radius: 0;
+  color: #ffffff;
+  background: #0f766e;
+  box-shadow: none;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+.winner-claim-card button.country-picker-trigger:hover {
+  transform: none;
+  background: #0d6962;
+}
+
+.winner-claim-card button.country-picker-trigger:focus-visible,
+.country-picker-search:focus-visible {
+  outline: 3px solid rgba(20, 184, 166, 0.34);
+  outline-offset: -3px;
+}
+
+.country-picker-code {
+  direction: ltr;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+}
+
+.country-picker-chevron {
+  font-size: 0.75em;
+}
+
+.country-picker-popover {
+  position: fixed;
+  z-index: 100;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  overflow: hidden;
+  border: 1px solid rgba(7, 59, 76, 0.18);
+  border-radius: 10px;
+  color: #073b4c;
+  background: #ffffff;
+  box-shadow: 0 20px 60px rgba(3, 42, 63, 0.3);
+}
+
+.country-picker-search {
+  width: 100%;
+  min-height: 46px;
+  border: 0;
+  border-bottom: 1px solid rgba(7, 59, 76, 0.14);
+  border-radius: 0;
+  padding: 0 12px;
+  color: #073b4c;
+  background: #ffffff;
+  outline: none;
+  font: inherit;
+}
+
+.country-picker-list {
+  margin: 0;
+  padding: 6px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  list-style: none;
+}
+
+.country-picker-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 7px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.country-picker-option.is-active,
+.country-picker-option[aria-selected='true'] {
+  background: rgba(10, 143, 187, 0.13);
+}
+
+.country-picker-option.is-active {
+  box-shadow: inset 0 0 0 2px rgba(15, 118, 110, 0.24);
+}
+
+.country-picker-empty {
+  margin: 0;
+  padding: 18px;
+  color: #376579;
+  text-align: center;
 }
 .phone-code-row {
   grid-template-columns: minmax(78px, 0.22fr) minmax(0, 1fr);
@@ -1041,7 +1154,12 @@ h2 {
     font-size: clamp(0.76rem, 2.4vw, 0.88rem);
   }
 
-  .phone-row span {
+  .winner-claim-card .country-picker-trigger {
+    min-height: 34px;
+    font-size: clamp(0.76rem, 2.4vw, 0.88rem);
+  }
+
+  .phone-row > span {
     padding: 0 8px;
   }
 
@@ -1102,6 +1220,11 @@ h2 {
     font-size: 0.7rem;
   }
 
+  .winner-claim-card .country-picker-trigger {
+    min-height: 27px;
+    font-size: 0.7rem;
+  }
+
   .setup-choice-card {
     min-height: 38px;
     padding: 4px;
@@ -1112,6 +1235,18 @@ h2 {
   .language-buttons,
   .setup-choice-grid {
     gap: 4px;
+  }
+}
+
+@media (max-width: 820px) {
+  .lucky-winner-page {
+    overflow-y: auto;
+    place-content: safe center;
+  }
+
+  .lucky-winner-page .winner-claim-card {
+    max-height: none;
+    overflow: visible;
   }
 }
 

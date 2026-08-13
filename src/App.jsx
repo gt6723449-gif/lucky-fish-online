@@ -102,6 +102,7 @@ export default function App() {
         number: info.number,
         country: info.country,
         age: info.age,
+        telegram: info.telegram || '',
         amount: '',
         status: 'Registered',
         resultStatus: 'Registered'
@@ -180,6 +181,7 @@ export default function App() {
         number: playerInfo.number,
         country: playerInfo.country,
         age: playerInfo.age,
+        telegram: playerInfo.telegram || '',
         amount,
         status,
         resultStatus: status
