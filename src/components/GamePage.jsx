@@ -40,7 +40,7 @@ export function GamePage({
 
   const jump = useCallback(() => {
     const state = stateRef.current;
-    if (!state || phase !== 'playing') return;
+    if (!state || !state.assetsReady || phase !== 'playing') return;
     state.velocity = -state.jumpPower;
   }, [phase]);
 
@@ -70,6 +70,7 @@ export function GamePage({
       speed: 3.6,
       gap: 160,
       obstacleWidth: 70,
+      assetsReady: false,
       obstacles: [],
       coins: [],
       backgroundImage: null,
@@ -88,44 +89,23 @@ export function GamePage({
       const image = new Image();
       image.onload = () => {
         assign(image);
-        resolve();
+        resolve(true);
       };
-      image.onerror = () => resolve();
+      image.onerror = () => resolve(false);
       image.src = src;
     });
 
-    const backgroundImage = new Image();
-    backgroundImage.onload = () => {
-      state.backgroundImage = backgroundImage;
-    };
-    backgroundImage.src = '/background.jpg';
-
-
-    const coinImage = new Image();
-    coinImage.onload = () => {
-      state.coinImage = coinImage;
-    };
-    coinImage.src = '/coin-game.png';
-
-    const fishImage = new Image();
-    fishImage.onload = () => {
-      state.fishImage = fishImage;
-    };
-    fishImage.src = '/fish-game.png';
-
-    const obstacleTopImage = new Image();
-    obstacleTopImage.onload = () => {
-      state.obstacleTopImage = obstacleTopImage;
-    };
-    obstacleTopImage.src = '/obstacle-stack-top.png';
-
-    const obstacleBottomImage = new Image();
-    obstacleBottomImage.onload = () => {
-      state.obstacleBottomImage = obstacleBottomImage;
-    };
-    obstacleBottomImage.src = '/obstacle-stack-bottom.png';
-
-
+    Promise.all([
+      loadGameImage('/background.jpg', (image) => { state.backgroundImage = image; }),
+      loadGameImage('/coin-game.png', (image) => { state.coinImage = image; }),
+      loadGameImage('/fish-game.png', (image) => { state.fishImage = image; }),
+      loadGameImage('/obstacle-stack-top.png', (image) => { state.obstacleTopImage = image; }),
+      loadGameImage('/obstacle-stack-bottom.png', (image) => { state.obstacleBottomImage = image; })
+    ]).then((results) => {
+      if (!state.cancelled && results.every(Boolean)) {
+        state.assetsReady = true;
+      }
+    });
     const resize = () => {
       const rect = canvas.getBoundingClientRect();
       const ratio = window.devicePixelRatio || 1;
@@ -158,6 +138,7 @@ export function GamePage({
 
     const draw = () => {
       drawScene(context, state, lang);
+      if (!state.assetsReady) drawOverlay(context, state, t.loadingGame || 'Loading...');
       if (phaseRef.current === 'paused') drawOverlay(context, state, overlayTextRef.current.paused);
       if (phaseRef.current === 'gameOver') drawOverlay(context, state, overlayTextRef.current.gameOver);
     };
@@ -178,7 +159,7 @@ export function GamePage({
     };
 
     const tick = () => {
-      if (phaseRef.current === 'playing' && !state.ended) {
+      if (phaseRef.current === 'playing' && state.assetsReady && !state.ended) {
         state.frame += 1;
         state.backgroundOffset += state.speed * 0.5;
         state.velocity += state.gravity;

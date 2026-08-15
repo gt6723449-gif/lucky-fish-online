@@ -77,9 +77,7 @@ function saveSubmission(sheet, data) {
   setCell(row, headers, 'Country', data.country || getCell(row, headers, 'Country') || '');
   setCell(row, headers, 'Age', data.age || getCell(row, headers, 'Age') || '');
 
-  if (telegram) {
-    setCell(row, headers, 'Telegram', telegram);
-  }
+  setCell(row, headers, 'Telegram', telegram || getCell(row, headers, 'Telegram') || '');
 
   if (amount !== '') {
     setCell(row, headers, 'Amount', amount);
