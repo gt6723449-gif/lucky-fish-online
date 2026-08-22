@@ -1331,3 +1331,74 @@ h2 {
     bottom: 10px;
   }
 }
+
+.referral-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding: clamp(16px, 4vw, 34px);
+  background:
+    linear-gradient(rgba(4, 49, 78, 0.34), rgba(4, 49, 78, 0.62)),
+    url('/background-game.png') center / cover no-repeat,
+    linear-gradient(180deg, #67d5f7 0%, #0a8fbb 62%, #063b5a 100%);
+}
+
+.referral-popup {
+  display: grid;
+  width: min(480px, 100%);
+  gap: 16px;
+  justify-items: center;
+  padding: clamp(22px, 5vw, 38px);
+  text-align: center;
+}
+
+.referral-gift {
+  display: grid;
+  place-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 999px;
+  background: rgba(255, 209, 102, 0.42);
+  box-shadow: 0 14px 30px rgba(181, 120, 7, 0.18);
+  font-size: 2.15rem;
+}
+
+.referral-popup h2 {
+  margin: 0;
+  color: #052f43;
+  font-size: clamp(1.55rem, 5vw, 2.25rem);
+  line-height: 1.05;
+}
+
+.referral-popup p {
+  margin: 0;
+  color: #073b4c;
+  font-size: clamp(1.08rem, 3.2vw, 1.45rem);
+  font-weight: 900;
+  line-height: 1.45;
+  white-space: pre-line;
+}
+
+.referral-popup button {
+  min-width: min(220px, 100%);
+}
+
+@media (max-width: 560px), (max-height: 430px) {
+  .referral-backdrop {
+    padding: 10px;
+  }
+
+  .referral-popup {
+    gap: 10px;
+    padding: 18px 14px;
+  }
+
+  .referral-gift {
+    width: 50px;
+    height: 50px;
+    font-size: 1.7rem;
+  }
+}

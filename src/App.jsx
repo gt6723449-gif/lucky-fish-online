@@ -5,6 +5,7 @@ import { GamePage } from './components/GamePage.jsx';
 import { InfoPage } from './components/InfoPage.jsx';
 import { LanguagePage } from './components/LanguagePage.jsx';
 import { PrizePage } from './components/PrizePage.jsx';
+import { ReferralPopup } from './components/ReferralPopup.jsx';
 import { StartPage } from './components/StartPage.jsx';
 import { COPY } from './data/translations.js';
 
@@ -34,6 +35,10 @@ export default function App() {
 
   const chooseLanguage = (nextLang) => {
     setLang(nextLang);
+    setPhase('referral');
+  };
+
+  const continueFromReferral = () => {
     setPhase('info');
   };
 
@@ -225,6 +230,8 @@ export default function App() {
   return (
     <main className="app-shell" dir={direction}>
       {phase === 'language' && <LanguagePage t={t} onChoose={chooseLanguage} />}
+
+      {phase === 'referral' && <ReferralPopup t={t} lang={lang} onContinue={continueFromReferral} />}
 
       {phase === 'info' && <InfoPage t={t} lang={lang} onSubmit={handleInfoSubmit} />}
 
